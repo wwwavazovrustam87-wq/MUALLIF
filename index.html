@@ -62,8 +62,9 @@ textarea#ta{font-size:18px;line-height:1.85;padding:18px;border-radius:18px;min-
 @keyframes sl{from{transform:translateY(100%)}}
 #toast{box-shadow:0 6px 18px #0004}
 ::selection{background:color-mix(in srgb,var(--ac) 30%,transparent)}
+#cs{margin-left:auto;font:12px system-ui,sans-serif;color:var(--mut)}header::after{content:none}
 </style></head><body>
-<header>✒️ Muallif</header>
+<header>✒️ Muallif<span id="cs"></span></header>
 <main id="m"></main>
 <nav id="nav"></nav>
 <div id="sheet"><div id="sb"></div></div><div id="toast"></div>
@@ -73,7 +74,7 @@ const FONTS=["Georgia,serif","system-ui,sans-serif","'Courier New',monospace"];
 let S={tab:"books",bi:0,ci:0,cp:0,sy:0,notes:[],paid:false,goal:500,books:[{title:"Mening birinchi kitobim",author:"Muallif",g:0,f:0,ch:[{t:"1-bob",x:""}]}]};
 try{const r=localStorage.getItem("muallif");if(r)S=Object.assign(S,JSON.parse(r))}catch(e){}
 const $=id=>document.getElementById(id);
-const save=()=>{try{localStorage.setItem("muallif",JSON.stringify(S))}catch(e){toast("Xotira to‘ldi: saqlanmadi")}};
+const save=()=>{try{localStorage.setItem("muallif",JSON.stringify(S))}catch(e){toast("Xotira to‘ldi: saqlanmadi")}sched()};
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 if(!S.books[S.bi])S.bi=0;const B=()=>S.books[S.bi];
 const words=t=>(t.trim().match(/\S+/g)||[]).length;
@@ -105,7 +106,7 @@ function render(){
   <button class="btn o" style="width:100%;margin-top:8px" onclick="$('fi').click()">📷 O'z rasmimni yuklash</button>`;
  }
  if(S.tab=="notes")notesV();if(S.tab=="me"){
-  m.innerHTML=`<h2>Profil</h2><div class="card"><b>Muallif</b><br><small>${S.paid?"Premium · cheksiz kitoblar":"Bepul reja · 1 ta kitob"}</small>
+  m.innerHTML=`<h2>Profil</h2>${cloudCard()}<div class="card"><b>Muallif</b><br><small>${S.paid?"Premium · cheksiz kitoblar":"Bepul reja · 1 ta kitob"}</small>
   ${S.paid?"":`<button class="btn" style="width:100%;margin-top:10px" onclick="pay()">Premiumga o'tish</button>`}</div>
   <div class="card"><b>Kunlik maqsad</b><input type="number" value="${S.goal}" oninput="S.goal=+this.value||1;save()"><small>so'z</small></div>
   <div class="card"><b>Rang mavzusi</b> <small>${S.th==null?"Avto":TH[S.th].n}</small><div class="sw" style="margin-top:8px"><span class="${S.th==null?"on":""}" style="background:linear-gradient(135deg,#faf6ef 50%,#1b1612 50%)" onclick="setTh(null)"></span>${TH.map((t,i)=>`<span class="${S.th===i?"on":""}" style="background:${t.ac}" onclick="setTh(${i})"></span>`).join("")}</div></div><div class="card"><b>Zaxira nusxa</b><br><small>${S.pst?"Xotira himoyalangan ✓":"Xotira himoyasiz, zaxira oling"}${S.lb?" · oxirgi zaxira: "+S.lb:""}</small><div class="row" style="margin-top:8px"><button class="btn" onclick="bak()">Faylga saqlash</button><button class="btn o" onclick="$('rf').click()">Tiklash</button></div><input type="file" id="rf" accept=".json,application/json" hidden onchange="rst(this)"></div><div class="card"><b>Kitoblar:</b> ${S.books.length} · <b>So'zlar:</b> ${S.books.reduce((a,b)=>a+total(b),0)}</div>
@@ -165,6 +166,37 @@ const bg=b.img?"linear-gradient(#0006,#0009),url("+b.img+") center/cover":"linea
 const h='<html><head><meta charset="utf-8"><title>'+esc(b.title)+'</title><style>@page{size:A5;margin:16mm}body{font:12pt/1.6 '+FONTS[b.f]+';margin:0}.cv{height:185mm;display:flex;flex-direction:column;justify-content:space-between;align-items:center;text-align:center;color:#fff;padding:30mm 8mm;box-sizing:border-box;background:'+bg+';-webkit-print-color-adjust:exact;print-color-adjust:exact}.cv h1{font-size:30pt;margin:0}h2{text-align:center;page-break-before:always}p{text-indent:1.2em;margin:0 0 .4em;text-align:justify}</style></head><body><div class="cv"><span></span><h1>'+esc(b.title)+'</h1><div>'+esc(b.author)+'</div></div>'+b.ch.map(c=>'<h2>'+esc(c.t)+'</h2>'+pars(c.x)).join("")+'</body></html>';
 const f=document.createElement("iframe");f.style.cssText="position:fixed;width:0;height:0;border:0";f.onload=()=>{setTimeout(()=>{f.contentWindow.focus();f.contentWindow.print()},400);setTimeout(()=>f.remove(),120000)};f.srcdoc=h;document.body.appendChild(f);toast("Chop etish oynasida «PDF sifatida saqlash» ni tanlang")}
 function exp(){$("sb").innerHTML='<h2>Kitobni yuklab olish</h2><p class="m">Muqova, boblar va muallif nomi bilan tayyorlanadi.</p><div class="row"><button class="btn" onclick="dlEpub()">EPUB</button><button class="btn o" onclick="dlPdf()">PDF</button></div><p class="m">PDF uchun chop etish oynasi ochiladi: «PDF sifatida saqlash» ni tanlang.</p>';$("sheet").classList.add("show")}
+const SB="https://xmecxpwmjwqhevdhtljs.supabase.co",KEY="sb_publishable_dQ4W4TACEFWWylse-arAog_CKqtJgPu";
+let AU=null,cs="",pt=null,busy=false;
+try{AU=JSON.parse(localStorage.getItem("muallif_auth")||"null")}catch(e){}
+const sa=()=>{try{AU?localStorage.setItem("muallif_auth",JSON.stringify(AU)):localStorage.removeItem("muallif_auth")}catch(e){}};
+const hs=t=>{let h=5381;for(let i=0;i<t.length;i++)h=((h<<5)+h+t.charCodeAt(i))|0;return h};
+const content=()=>({books:S.books,notes:S.notes,goal:S.goal,th:S.th});
+const ch=()=>hs(JSON.stringify(content()));
+const empty=()=>S.books.every(b=>!total(b))&&!S.notes.length;
+function setCs(t){cs=t;["cs","cs2"].forEach(i=>{const e=$(i);if(e)e.textContent=t})}
+async function rq(path,o={},auth=true){const h={apikey:KEY,"Content-Type":"application/json",...(o.h||{})};if(auth&&AU)h.Authorization="Bearer "+AU.at;const b=o.b?JSON.stringify(o.b):undefined;return fetch(SB+path,{method:o.m||"GET",headers:h,body:b,keepalive:!!o.k&&(!b||b.length<60000)})}
+function ss(d,em){AU={at:d.access_token,rt:d.refresh_token,exp:Date.now()+(d.expires_in||3600)*1000,email:em||(d.user&&d.user.email)||(AU&&AU.email),uid:(d.user&&d.user.id)||(AU&&AU.uid)};sa()}
+async function rf(){if(!AU)return false;try{const r=await rq("/auth/v1/token?grant_type=refresh_token",{m:"POST",b:{refresh_token:AU.rt}},false);if(!r.ok){if(r.status==400||r.status==401||r.status==403){AU=null;sa();setCs("");render()}return false}ss(await r.json());return true}catch(e){return false}}
+async function api(path,o){if(!AU)throw 0;if(AU.exp-60000<Date.now())await rf();if(!AU)throw 0;let r=await rq(path,o);if(r.status==401&&await rf())r=await rq(path,o);return r}
+function msg(d){const m=(d.error_description||d.msg||d.message||"").toLowerCase();if(m.includes("invalid login"))return"Email yoki parol noto‘g‘ri";if(m.includes("already"))return"Bu email ro‘yxatdan o‘tgan: «Kirish» ni bosing";if(m.includes("password"))return"Parol kamida 6 belgi bo‘lsin";if(m.includes("rate")||m.includes("seconds"))return"Biroz kuting va qayta urining";if(m.includes("email"))return"Email noto‘g‘ri";return"Xatolik: "+(d.error_description||d.msg||d.message||"noma’lum")}
+async function au(kind){const em=$("em").value.trim(),pw=$("pw").value;if(!em||pw.length<6){toast("Email va kamida 6 belgili parol kiriting");return}toast("Kutilmoqda…");try{let r=await rq(kind=="up"?"/auth/v1/signup":"/auth/v1/token?grant_type=password",{m:"POST",b:{email:em,password:pw}},false),d=await r.json();
+if(kind=="up"&&r.ok&&!d.access_token){r=await rq("/auth/v1/token?grant_type=password",{m:"POST",b:{email:em,password:pw}},false);d=await r.json();if(!r.ok){toast("Pochtangizga tasdiqlash havolasi yuborildi");return}}
+if(!r.ok||!d.access_token){toast(msg(d));return}
+ss(d,em);toast("Kirdingiz ✓");render();
+if(S.uid&&S.uid!==AU.uid&&!empty()){ask("Boshqa akkaunt","Bu telefonda boshqa akkauntning kitoblari bor. Nima qilamiz?","Yangi akkauntga yuklash",()=>{S.uid=null;S.lh=null;S.cloudAt=null;pull()},"Telefonni tozalash",()=>{S.books=[{title:"Mening birinchi kitobim",author:"Muallif",g:0,f:0,ch:[{t:"1-bob",x:""}]}];S.notes=[];S.bi=0;S.ci=0;S.uid=null;S.lh=null;S.cloudAt=null;save();pull()})}else pull()}catch(e){toast("Internet yo‘q yoki xatolik")}}
+function out(){AU=null;sa();setCs("");toast("Chiqdingiz. Kitoblar shu telefonda qoladi");render()}
+async function push(k){if(!AU||busy)return;busy=true;setCs("☁️ …");try{const h=ch(),b={data:content(),updated_at:new Date().toISOString()};if(AU.uid)b.user_id=AU.uid;const r=await api("/rest/v1/user_data?on_conflict=user_id",{m:"POST",h:{Prefer:"resolution=merge-duplicates,return=representation"},b,k});if(!r.ok)throw 0;const j=await r.json();S.cloudAt=j[0].updated_at;S.lh=h;S.uid=AU.uid;try{localStorage.setItem("muallif",JSON.stringify(S))}catch(e){}setCs("☁️ saqlandi ✓")}catch(e){setCs("☁️ ulanmadi")}busy=false}
+function useCloud(c){const d=c.data;if(!d||!Array.isArray(d.books)||!d.books.length){push();return}S.books=d.books;S.notes=d.notes||[];S.goal=d.goal||S.goal;S.th=d.th==null?null:d.th;S.bi=0;S.ci=0;S.cp=0;S.sy=0;S.cloudAt=c.updated_at;S.lh=ch();S.uid=AU.uid;applyTh();save();render();setCs("☁️ yangilandi ✓")}
+async function pull(){if(!AU||busy)return;setCs("☁️ …");try{const r=await api("/rest/v1/user_data?select=data,updated_at");if(!r.ok)throw 0;const j=await r.json();
+if(!j.length){if(!empty())await push();else setCs("☁️ tayyor");return}
+const c=j[0];if(c.updated_at===S.cloudAt){if(ch()!==S.lh)await push();else setCs("☁️ saqlandi ✓");return}
+const dirty=S.lh==null?!empty():ch()!==S.lh;if(!dirty)useCloud(c);else conflict(c)}catch(e){setCs("☁️ ulanmadi")}}
+function sched(){if(!AU)return;clearTimeout(pt);if(ch()===S.lh)return;setCs("☁️ kutilmoqda…");pt=setTimeout(()=>push(),3500)}
+function ask(t,p,a,fa,b,fb){window._fa=fa;window._fb=fb;$("sb").innerHTML='<h2>'+t+'</h2><p class="m">'+p+'</p><div class="row"><button class="btn" onclick="cl();_fa()">'+a+'</button><button class="btn o" onclick="cl();_fb()">'+b+'</button></div>';$("sheet").classList.add("show")}
+function conflict(c){ask("Ikki xil nusxa topildi","Bulutdagi nusxa boshqa qurilmada o‘zgargan, shu telefonda ham o‘zgarishlar bor. Qaysi biri qolsin?","Bulutdagini olish",()=>useCloud(c),"Shu telefondagini saqlash",()=>push())}
+function cloudCard(){if(AU)return '<div class="card"><b>☁️ Bulut</b><br><small>'+esc(AU.email||"")+' · <span id="cs2">'+cs+'</span></small><div class="row" style="margin-top:8px"><button class="btn" onclick="pull()">Sinxronlash</button><button class="btn o" onclick="out()">Chiqish</button></div></div>';
+return '<div class="card"><b>☁️ Bulutga kirish</b><br><small>Kitoblar yo‘qolmaydi, boshqa telefondan ham ochiladi</small><input id="em" type="email" placeholder="Email" autocomplete="email"><input id="pw" type="password" placeholder="Parol (kamida 6 belgi)" autocomplete="current-password"><div class="row"><button class="btn" onclick="au(\'in\')">Kirish</button><button class="btn o" onclick="au(\'up\')">Ro‘yxatdan o‘tish</button></div></div>'}
 function stat(){const b=B(),w=total(b),e=$("st");if(e){e.textContent=`${words(b.ch[S.ci].x)} so'z (bob) · ${w}/${S.goal} (maqsad) · saqlandi ✓`;$("pb").style.width=Math.min(100,w/S.goal*100)+"%"}}
 function pv(){const c=document.querySelector(".cover");if(c){c.querySelector("h3").textContent=B().title||"Sarlavha";c.querySelector("p").textContent=B().author||"Muallif"}}
 function addCh(){const b=B();b.ch.push({t:(b.ch.length+1)+"-bob",x:""});S.ci=b.ch.length-1;save();render()}
@@ -174,6 +206,8 @@ function cl(){$("sheet").classList.remove("show")}
 $("sheet").onclick=e=>{if(e.target.id=="sheet")cl()};
 if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().then(p=>{S.pst=p;if(S.tab=="me")render()}).catch(()=>{});
 applyTh();
+if(AU)setTimeout(pull,400);
+document.addEventListener("visibilitychange",()=>{if(!AU)return;if(document.hidden){if(ch()!==S.lh)push(true)}else pull()});
 addEventListener("pagehide",()=>{keep();save()});document.addEventListener("visibilitychange",()=>{keep();save()});
 render();
 if("serviceWorker" in navigator)addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
