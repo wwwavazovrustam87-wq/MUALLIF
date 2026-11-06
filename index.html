@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="uz"><head><meta charset="utf-8"><title>Muallif</title><link rel="manifest" href="manifest.json"><meta name="theme-color" content="#b4562b"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+:root{--bg:#faf6ef;--card:#fff;--tx:#2b2118;--mut:#8a7b6b;--ac:#b4562b;--ln:#e8dfd1;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#1b1612;--card:#262019;--tx:#f1e8dc;--mut:#a69683;--ac:#e0885a;--ln:#3a3128}}
+*{box-sizing:border-box}html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--tx);font:16px/1.5 Georgia,serif;display:flex;flex-direction:column;max-width:520px;margin:auto}
+header{padding:14px 18px 6px;font-size:22px;font-weight:bold;color:var(--ac)}
+main{flex:1;overflow:auto;padding:8px 18px 20px}
+nav{display:flex;border-top:1px solid var(--ln);background:var(--card)}
+nav button{flex:1;border:0;background:none;padding:10px 0;color:var(--mut);font:12px system-ui,sans-serif}
+nav button.on{color:var(--ac);font-weight:bold}nav b{display:block;font-size:20px}
+.card{background:var(--card);border:1px solid var(--ln);border-radius:14px;padding:14px;margin:10px 0}
+input,textarea,select{width:100%;padding:10px;border:1px solid var(--ln);border-radius:10px;background:var(--card);color:var(--tx);font:inherit;margin:4px 0}
+textarea{min-height:42vh;resize:vertical;line-height:1.7}
+.btn{background:var(--ac);color:#fff;border:0;border-radius:10px;padding:10px 16px;font:600 14px system-ui,sans-serif}
+.btn.o{background:none;color:var(--ac);border:1px solid var(--ac)}
+.row{display:flex;gap:8px;align-items:center}.row>*{flex:1}
+small,.m{color:var(--mut);font:13px system-ui,sans-serif}
+.bar{height:8px;background:var(--ln);border-radius:6px;overflow:hidden}.bar i{display:block;height:100%;background:var(--ac)}
+.cover{width:170px;height:240px;margin:10px auto;border-radius:6px 12px 12px 6px;display:flex;flex-direction:column;justify-content:space-between;align-items:center;text-align:center;padding:26px 14px;color:#fff;box-shadow:6px 8px 18px #0004;border-left:8px solid #0003}
+.cover h3{margin:0;font-size:22px;line-height:1.2}.cover p{margin:0;font-size:14px;letter-spacing:1px}
+.sw{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0}.sw span{width:34px;height:34px;border-radius:50%;border:3px solid transparent}.sw span.on{border-color:var(--tx)}
+.mini{display:flex;gap:12px;align-items:center}.mini .cover{width:56px;height:80px;margin:0;padding:8px 4px;font-size:8px;box-shadow:2px 3px 6px #0003}.mini .cover h3{font-size:9px}.mini .cover p{display:none}
+#sheet{position:fixed;inset:0;background:#0007;display:none;align-items:flex-end;justify-content:center}
+#sheet.show{display:flex}#sheet>div{background:var(--card);width:100%;max-width:520px;border-radius:20px 20px 0 0;padding:20px;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
+#toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--tx);color:var(--bg);padding:9px 16px;border-radius:20px;font:13px system-ui;display:none;max-width:90%;text-align:center}
+h2{margin:6px 0;font-size:19px}
+</style></head><body>
+<header>✒️ Muallif</header>
+<main id="m"></main>
+<nav id="nav"></nav>
+<div id="sheet"><div id="sb"></div></div><div id="toast"></div>
+<script>
+const GR=[["#b4562b","#6e2a12"],["#2f6f6a","#123a37"],["#4b3f8f","#1f1a48"],["#2b2b2b","#000"],["#a8325e","#4a0f27"]];
+const FONTS=["Georgia,serif","system-ui,sans-serif","'Courier New',monospace"];
+let S={tab:"books",bi:0,ci:0,cp:0,sy:0,notes:[],paid:false,goal:500,books:[{title:"Mening birinchi kitobim",author:"Muallif",g:0,f:0,ch:[{t:"1-bob",x:""}]}]};
+try{const r=localStorage.getItem("muallif");if(r)S=Object.assign(S,JSON.parse(r))}catch(e){}
+const $=id=>document.getElementById(id);
+const save=()=>{try{localStorage.setItem("muallif",JSON.stringify(S))}catch(e){toast("Xotira to‘ldi: saqlanmadi")}};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+if(!S.books[S.bi])S.bi=0;const B=()=>S.books[S.bi];
+const words=t=>(t.trim().match(/\S+/g)||[]).length;
+const total=b=>b.ch.reduce((a,c)=>a+words(c.x),0);
+function toast(t){const e=$("toast");e.textContent=t;e.style.display="block";setTimeout(()=>e.style.display="none",2600)}
+function cov(b,cls=""){const g=GR[b.g];return `<div class="cover ${cls}" style="background:${b.img?`linear-gradient(#0004,#0008),url(${b.img}) center/cover`:`linear-gradient(160deg,${g[0]},${g[1]})`};font-family:${FONTS[b.f]}"><h3>${esc(b.title)||"Sarlavha"}</h3><p>${esc(b.author)||"Muallif"}</p></div>`}
+function go(t){keep();S.tab=t;save();render()}
+function render(){
+ const T=[["books","📚","Kitoblar"],["write","✍️","Yozish"],["notes","💡","Daftar"],["cover","🎨","Muqova"],["me","👤","Profil"]];
+ $("nav").innerHTML=T.map(a=>`<button class="${S.tab==a[0]?"on":""}" onclick="go('${a[0]}')"><b>${a[1]}</b>${a[2]}</button>`).join("");
+ const m=$("m");
+ if(S.tab=="books"){
+  m.innerHTML=`<h2>Mening kitoblarim</h2>`+resume()+S.books.map((b,i)=>`<div class="card mini">${cov(b)}<div style="flex:1"><b>${esc(b.title)}</b><br><small>${b.ch.length} bob · ${total(b)} so'z</small><div class="row" style="margin-top:8px"><button class="btn" onclick="if(S.bi!=${i}){S.cp=0;S.sy=0}S.bi=${i};S.ci=S.books[${i}].lc||0;go('write')">Yozish</button><button class="btn o" onclick="S.bi=${i};go('cover')">Muqova</button></div></div></div>`).join("")+
+  `<button class="btn" style="width:100%" onclick="newBook()">+ Yangi kitob</button><p class="m">Birinchi kitob bepul. Keyingilari uchun obuna kerak.</p>`;
+ }
+ if(S.tab=="write"){
+  const b=B();if(!b.ch[S.ci])S.ci=0;b.lc=S.ci;const c=b.ch[S.ci],w=total(b),p=Math.min(100,w/S.goal*100);
+  m.innerHTML=`<div class="row"><select onchange="S.ci=+this.value;S.cp=0;S.sy=0;save();render()">${b.ch.map((x,i)=>`<option value="${i}" ${i==S.ci?"selected":""}>${esc(x.t)}</option>`).join("")}</select><button class="btn o" style="flex:0 0 auto" onclick="addCh()">+ Bob</button></div>
+  <input value="${esc(c.t)}" oninput="B().ch[S.ci].t=this.value;save()" placeholder="Bob nomi">
+  <textarea id="ta" onblur="keep();save()" onscroll="S.sy=this.scrollTop" placeholder="Hikoyangizni shu yerda yozing…" oninput="B().ch[S.ci].x=this.value;S.cp=this.selectionStart;S.sy=this.scrollTop;save();stat()">${esc(c.x)}</textarea>
+  <div class="bar"><i id="pb" style="width:${p}%"></i></div><small id="st"></small>
+  <div class="row" style="margin-top:10px"><button class="btn o" onclick="tr()">Lotin ⇄ Кирилл</button><button class="btn" onclick="exp()">Yuklab olish</button></div>`;stat();restore();
+ }
+ if(S.tab=="cover"){
+  const b=B();
+  m.innerHTML=`<h2>Muqova</h2>${cov(b)}<input value="${esc(b.title)}" oninput="B().title=this.value;save();pv()" placeholder="Kitob nomi"><input value="${esc(b.author)}" oninput="B().author=this.value;save();pv()" placeholder="Muallif">
+  <input type="file" id="fi" accept="image/*" hidden onchange="pic(this)">${b.img?`<button class="btn o" style="width:100%;margin:6px 0" onclick="rmi()">Rasmni olib tashlash</button>`:""}<small>Rang</small><div class="sw">${GR.map((g,i)=>`<span class="${b.g==i?"on":""}" style="background:${g[0]}" onclick="B().g=${i};save();render()"></span>`).join("")}</div>
+  <small>Shrift</small><select onchange="B().f=+this.value;save();render()">${["Klassik","Zamonaviy","Mashinka"].map((n,i)=>`<option value="${i}" ${b.f==i?"selected":""}>${n}</option>`).join("")}</select>
+  <button class="btn o" style="width:100%;margin-top:8px" onclick="$('fi').click()">📷 O'z rasmimni yuklash</button>`;
+ }
+ if(S.tab=="notes")notesV();if(S.tab=="me"){
+  m.innerHTML=`<h2>Profil</h2><div class="card"><b>Muallif</b><br><small>${S.paid?"Premium · cheksiz kitoblar":"Bepul reja · 1 ta kitob"}</small>
+  ${S.paid?"":`<button class="btn" style="width:100%;margin-top:10px" onclick="pay()">Premiumga o'tish</button>`}</div>
+  <div class="card"><b>Kunlik maqsad</b><input type="number" value="${S.goal}" oninput="S.goal=+this.value||1;save()"><small>so'z</small></div>
+  <div class="card"><b>Kitoblar:</b> ${S.books.length} · <b>So'zlar:</b> ${S.books.reduce((a,b)=>a+total(b),0)}</div>
+  <button class="btn o" style="width:100%" onclick="toast('Akkauntni o\\'chirish: to\\'liq ilovada')">Akkauntni o'chirish</button>`;
+ }
+}
+const K=["G’oya","Qahramon","Qoralama"];
+const LC=[["o'","ў"],["g'","ғ"],["sh","ш"],["ch","ч"],["yo","ё"],["yu","ю"],["ya","я"],["ye","е"],["ts","ц"]];
+const LM={};"aа bб dд eе fф gг hҳ iи jж kк lл mм nн oо pп qқ rр sс tт uу vв xх yй zз".split(" ").forEach(p=>LM[p[0]]=p[1]);
+const CM={"а":"a","б":"b","в":"v","г":"g","д":"d","е":"e","ё":"yo","ж":"j","з":"z","и":"i","й":"y","к":"k","л":"l","м":"m","н":"n","о":"o","п":"p","р":"r","с":"s","т":"t","у":"u","ф":"f","х":"x","ц":"ts","ч":"ch","ш":"sh","щ":"shch","ъ":"'","ы":"i","ь":"","э":"e","ю":"yu","я":"ya","ў":"o'","қ":"q","ғ":"g'","ҳ":"h"};
+function l2c(t){t=t.replace(/[ʻʼ‘’`´]/g,"'");let o="",i=0;while(i<t.length){let m=0;for(const [a,b] of LC){const s=t.substr(i,a.length);if(s.toLowerCase()==a){o+=s[0]!=s[0].toLowerCase()?b.toUpperCase():b;i+=a.length;m=1;break}}if(m)continue;const ch=t[i],l=ch.toLowerCase();let r=LM[l];if(r){if(l=="e"&&!/[a-zA-Z']/.test(t[i-1]||" "))r="э";o+=ch!=l?r.toUpperCase():r}else o+=ch;i++}return o}
+function c2l(t){return t.replace(/[\s\S]/g,ch=>{const l=ch.toLowerCase(),r=CM[l];if(r===undefined)return ch;if(!r)return "";return ch!=l?r[0].toUpperCase()+r.slice(1):r})}
+function tr(){const c=B().ch[S.ci],cy=/[а-яёўқғҳ]/i.test(c.x+c.t);c.x=cy?c2l(c.x):l2c(c.x);c.t=cy?c2l(c.t):l2c(c.t);S.cp=0;save();render();toast(cy?"Lotinga o‘tkazildi":"Kirillga o‘tkazildi")}
+function keep(){const a=$("ta");if(a){S.cp=a.selectionStart;S.sy=a.scrollTop}}
+function restore(){const a=$("ta");if(a){a.scrollTop=S.sy||0;if(S.cp>0&&S.cp<=a.value.length){a.focus({preventScroll:true});a.setSelectionRange(S.cp,S.cp);a.scrollTop=S.sy||0}}}
+function resume(){const b=B(),c=b.ch[S.ci];if(!c||!total(b))return "";return `<div class="card" style="border-color:var(--ac)"><small>Oxirgi joyingiz</small><br><b>${esc(b.title)}</b> · ${esc(c.t)}<button class="btn" style="width:100%;margin-top:8px" onclick="go('write')">Shu joydan davom etish →</button></div>`}
+function pic(i){const f=i.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const c=document.createElement("canvas");c.width=340;c.height=480;const x=c.getContext("2d"),k=Math.max(340/im.width,480/im.height),w=im.width*k,h=im.height*k;x.drawImage(im,(340-w)/2,(480-h)/2,w,h);B().img=c.toDataURL("image/jpeg",.8);save();render()};im.src=r.result};r.readAsDataURL(f)}
+function rmi(){B().img="";save();render()}
+function addN(k){S.notes.unshift({k,t:"",x:""});save();render()}
+function delN(i){if(S.dn===i){S.notes.splice(i,1);S.dn=-1;save();render()}else{S.dn=i;toast("Yana bosing: o‘chiriladi")}}
+function toCh(i){const n=S.notes[i];B().ch[S.ci].x+="\n\n"+n.x;save();toast("Joriy bobga qo‘shildi")}
+function notesV(){const n=S.notes;$("m").innerHTML=`<h2>Daftar</h2><div class="row">${K.map((k,i)=>`<button class="btn o" onclick="addN(${i})">+ ${k}</button>`).join("")}</div>`+(n.length?"":`<p class="m">Hozircha bo‘sh. G’oya, qahramon yoki qoralama qo‘shing.</p>`)+n.map((o,i)=>`<div class="card"><div class="row"><small>${K[o.k]}</small><button class="btn o" style="flex:0 0 auto" onclick="delN(${i})">🗑</button></div><input value="${esc(o.t)}" placeholder="${o.k==1?"Ism, yosh, xarakter":"Sarlavha"}" oninput="S.notes[${i}].t=this.value;save()"><textarea style="min-height:90px" placeholder="${o.k==1?"Tashqi ko‘rinishi, maqsadi, sirlari…":"Yozing…"}" oninput="S.notes[${i}].x=this.value;save()">${esc(o.x)}</textarea>${o.k==2?`<button class="btn o" onclick="toCh(${i})">Joriy bobga qo‘shish</button>`:""}</div>`).join("")}
+function stat(){const b=B(),w=total(b),e=$("st");if(e){e.textContent=`${words(b.ch[S.ci].x)} so'z (bob) · ${w}/${S.goal} (maqsad)`;$("pb").style.width=Math.min(100,w/S.goal*100)+"%"}}
+function pv(){const c=document.querySelector(".cover");if(c){c.querySelector("h3").textContent=B().title||"Sarlavha";c.querySelector("p").textContent=B().author||"Muallif"}}
+function addCh(){const b=B();b.ch.push({t:(b.ch.length+1)+"-bob",x:""});S.ci=b.ch.length-1;save();render()}
+function newBook(){if(S.books.length>=1&&!S.paid){pay();return}S.books.push({title:"Yangi kitob",author:"Muallif",g:1,f:0,ch:[{t:"1-bob",x:""}]});S.bi=S.books.length-1;save();render()}
+function exp(){$("sb").innerHTML=`<h2>Kitobni yuklab olish</h2><p class="m">Format tanlang. Prototipda fayl yaratilmaydi, to'liq ilovada EPUB va PDF tayyor bo'ladi.</p><div class="row"><button class="btn" onclick="cl();toast('EPUB tayyorlandi (namuna)')">EPUB</button><button class="btn o" onclick="cl();toast('PDF tayyorlandi (namuna)')">PDF</button></div>`;$("sheet").classList.add("show")}
+function pay(){$("sb").innerHTML=`<h2>Premium</h2><p class="m">Cheksiz kitoblar, EPUB/PDF, muqova shablonlari. Karta orqali to'lov.</p><input placeholder="Karta raqami 8600 •••• •••• ••••" inputmode="numeric" maxlength="19"><div class="row"><input placeholder="MM/YY"><button class="btn" onclick="S.paid=true;save();cl();toast('To\\'lov muvaffaqiyatli (namuna)');render()">To'lash</button></div><p class="m">Bu namuna: haqiqiy to'lov keyin ulanadi.</p><button class="btn o" style="width:100%" onclick="cl()">Yopish</button>`;$("sheet").classList.add("show")}
+function cl(){$("sheet").classList.remove("show")}
+$("sheet").onclick=e=>{if(e.target.id=="sheet")cl()};
+addEventListener("pagehide",()=>{keep();save()});document.addEventListener("visibilitychange",()=>{keep();save()});
+render();
+if("serviceWorker" in navigator)addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+</script></body></html>
