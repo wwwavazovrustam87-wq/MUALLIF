@@ -82,7 +82,7 @@ const total=b=>b.ch.reduce((a,c)=>a+words(c.x),0);
 function toast(t){const e=$("toast");e.textContent=t;e.style.display="block";setTimeout(()=>e.style.display="none",2600)}
 function cov(b,cls=""){const g=GR[b.g];return `<div class="cover ${cls}" style="background:${b.img?`linear-gradient(#0004,#0008),url(${b.img}) center/cover`:`linear-gradient(160deg,${g[0]},${g[1]})`};font-family:${FONTS[b.f]}"><h3>${esc(b.title)||"Sarlavha"}</h3><p>${esc(b.author)||"Muallif"}</p></div>`}
 function go(t){keep();S.tab=t;save();render()}
-function render(){
+function render(){stopVoice();
  const T=[["books","📚","Kitoblar"],["write","✍️","Yozish"],["notes","💡","Daftar"],["cover","🎨","Muqova"],["me","👤","Profil"]];
  $("nav").innerHTML=T.map(a=>`<button class="${S.tab==a[0]?"on":""}" onclick="go('${a[0]}')"><b>${a[1]}</b>${a[2]}</button>`).join("");
  const m=$("m");
@@ -95,7 +95,7 @@ function render(){
   m.innerHTML=`<div class="row"><select onchange="S.ci=+this.value;S.cp=0;S.sy=0;save();render()">${b.ch.map((x,i)=>`<option value="${i}" ${i==S.ci?"selected":""}>${esc(x.t)}</option>`).join("")}</select><button class="btn o" style="flex:0 0 auto" onclick="addCh()">+ Bob</button><button class="btn o" style="flex:0 0 auto" onclick="chs()">☰</button></div>
   <input value="${esc(c.t)}" oninput="B().ch[S.ci].t=this.value;save()" placeholder="Bob nomi">
   <textarea id="ta" onblur="keep();save()" onscroll="S.sy=this.scrollTop" placeholder="Hikoyangizni shu yerda yozing…" oninput="B().ch[S.ci].x=this.value;S.cp=this.selectionStart;S.sy=this.scrollTop;save();stat()">${esc(c.x)}</textarea>
-  <div class="bar"><i id="pb" style="width:${p}%"></i></div><small id="st"></small>
+  <div class="bar"><i id="pb" style="width:${p}%"></i></div><small id="st"></small><div class="row" style="margin-top:10px"><button class="btn" id="mic" onclick="voice()">🎤 Gapirib yozish</button><select style="flex:0 0 40%" onchange="S.vl=this.value;save()">${[["uz-UZ","O‘zbekcha"],["ru-RU","Русский"],["en-US","English"],["tr-TR","Türkçe"]].map(l=>`<option value="${l[0]}" ${(S.vl||"uz-UZ")==l[0]?"selected":""}>${l[1]}</option>`).join("")}</select></div><small>Buyruqlar: «nuqta», «vergul», «yangi qator», «abzats»</small>
   <div class="row" style="margin-top:10px"><button class="btn o" onclick="tr()">Lotin ⇄ Кирилл</button><button class="btn" onclick="exp()">Yuklab olish</button></div>`;stat();restore();
  }
  if(S.tab=="cover"){
@@ -214,6 +214,20 @@ function streak(){const ds=new Set(S.days||[]),d=new Date();if(!ds.has(dk()))d.s
 function chs(){const b=B();$("sb").innerHTML='<h2>Boblar</h2>'+b.ch.map((c,i)=>'<div class="row" style="margin:6px 0"><span style="flex:1;text-align:left">'+(i+1)+'. '+esc(c.t||"Bob")+' <small>'+words(c.x)+' so‘z</small></span><button class="btn o" style="flex:0 0 auto;padding:6px 10px" onclick="mv('+i+',-1)">↑</button><button class="btn o" style="flex:0 0 auto;padding:6px 10px" onclick="mv('+i+',1)">↓</button><button class="btn o" style="flex:0 0 auto;padding:6px 10px" onclick="dc('+i+')">'+(S.dc===i?"Aniq?":"🗑")+'</button></div>').join("")+'<button class="btn" style="width:100%;margin-top:10px" onclick="cl();render()">Tayyor</button>';$("sheet").classList.add("show")}
 function mv(i,d){const a=B().ch,j=i+d;if(j<0||j>=a.length)return;[a[i],a[j]]=[a[j],a[i]];if(S.ci==i)S.ci=j;else if(S.ci==j)S.ci=i;save();chs()}
 function dc(i){const a=B().ch;if(a.length<2){toast("Kamida bitta bob qolishi kerak");return}if(S.dc===i){a.splice(i,1);S.dc=-1;if(S.ci>=a.length)S.ci=a.length-1;else if(S.ci>i)S.ci--;S.cp=0;save();chs()}else{S.dc=i;chs();toast("Yana bosing: bob o‘chiriladi")}}
+let VR=null,VA=false,VB="",VF="",VAf="",VT=null;
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+function vfix(t){return t.replace(/\b(yangi qator|yangi satr)\b/gi,"\n").replace(/\babzats\b/gi,"\n\n").replace(/\bso['‘’ʻ]roq belgisi\b/gi,"?").replace(/\bundov belgisi\b/gi,"!").replace(/\bnuqta\b/gi,".").replace(/\bvergul\b/gi,",").replace(/[ \t]+([.,!?])/g,"$1").replace(/ *\n */g,"\n")}
+function vcap(b,t){if(!t)return t;if(!b.trim()||/[.!?]\s*$/.test(b)||/\n\s*$/.test(b))t=t.charAt(0).toUpperCase()+t.slice(1);return t.replace(/([.!?]\s+|\n\s*)(\p{L})/gu,(m,a,c)=>a+c.toUpperCase())}
+function vshow(im){const ta=$("ta");if(!ta)return;let ins=vcap(VB,vfix((VF+" "+im).trim()));const sp=VB&&!/\s$/.test(VB)&&ins&&!/^[.,!?\n]/.test(ins)?" ":"";const t=VB+sp+ins;ta.value=t+VAf;try{ta.setSelectionRange(t.length,t.length)}catch(e){}ta.scrollTop=ta.scrollHeight}
+function vsave(){const ta=$("ta");if(ta){B().ch[S.ci].x=ta.value;S.cp=ta.selectionStart;save();stat()}}
+function vui(){const b=$("mic");if(b){b.textContent=VA?"⏹ To‘xtatish":"🎤 Gapirib yozish";b.style.background=VA?"linear-gradient(135deg,#d33,#a00)":""}}
+function voice(){if(VA){stopVoice();return}if(!SR){toast("Bu brauzerda ovozli yozish yo‘q. Chrome yoki Samsung brauzerini sinang, yoki klaviaturadagi 🎤 ni bosing");return}const ta=$("ta");if(!ta)return;const p=ta.selectionStart==null?ta.value.length:ta.selectionStart;VB=ta.value.slice(0,p);VAf=ta.value.slice(p);VF="";VA=true;vui();vstart()}
+function vstart(){if(!VA)return;const r=new SR();VR=r;r.lang=S.vl||"uz-UZ";r.interimResults=true;r.continuous=false;r.maxAlternatives=1;
+r.onresult=e=>{let f="",im="";for(let i=0;i<e.results.length;i++){const t=e.results[i][0].transcript;if(e.results[i].isFinal)f+=t;else im+=t}if(f)VF=(VF+" "+f).trim();vshow(im);if(f)vsave()};
+r.onerror=e=>{const c=e.error;if(c=="not-allowed"||c=="service-not-allowed"){toast("Mikrofonga ruxsat bering (brauzer sozlamalari)");VA=false}else if(c=="language-not-supported"){toast("Bu brauzer shu tilni tanimadi. Boshqa til tanlang yoki Chrome’da sinang");VA=false}else if(c=="network"){toast("Ovozli yozish uchun internet kerak");VA=false}else if(c=="audio-capture"){toast("Mikrofon topilmadi");VA=false}vui()};
+r.onend=()=>{if(VA){clearTimeout(VT);VT=setTimeout(vstart,250)}else vui()};
+try{r.start()}catch(e){VT=setTimeout(vstart,400)}}
+function stopVoice(){if(!VA&&!VR)return;VA=false;clearTimeout(VT);try{VR&&VR.stop()}catch(e){}VR=null;vsave();vui()}
 function stat(){const b=B(),w=total(b),e=$("st");if(e){e.textContent=`${words(b.ch[S.ci].x)} so'z (bob) · bugun ${today()}/${S.goal} · saqlandi ✓`;$("pb").style.width=Math.min(100,today()/S.goal*100)+"%"}}
 function pv(){const c=document.querySelector(".cover");if(c){c.querySelector("h3").textContent=B().title||"Sarlavha";c.querySelector("p").textContent=B().author||"Muallif"}}
 function addCh(){const b=B();b.ch.push({t:(b.ch.length+1)+"-bob",x:""});S.ci=b.ch.length-1;save();render()}
