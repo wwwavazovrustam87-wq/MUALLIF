@@ -1,1 +1,103 @@
-{"name":"Muallif","short_name":"Muallif","start_url":"./","scope":"./","display":"standalone","background_color":"#faf6ef","theme_color":"#b4562b","lang":"uz","icons":[{"src":"icon-192.png","sizes":"192x192","type":"image/png","purpose":"any maskable"},{"src":"icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}]}
+{
+ "id": "./",
+ "name": "Muallif: kitob yozish makoni",
+ "short_name": "Muallif",
+ "description": "O‘zbek tilida kitob yozing, muqova yarating va EPUB yoki PDF qilib yuklab oling.",
+ "start_url": "./",
+ "scope": "./",
+ "display": "standalone",
+ "orientation": "portrait",
+ "background_color": "#faf6ef",
+ "theme_color": "#b4562b",
+ "lang": "uz",
+ "dir": "ltr",
+ "categories": [
+  "books",
+  "productivity",
+  "education"
+ ],
+ "icons": [
+  {
+   "src": "icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png",
+   "purpose": "any"
+  },
+  {
+   "src": "icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "any"
+  },
+  {
+   "src": "icon-maskable-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "maskable"
+  }
+ ],
+ "shortcuts": [
+  {
+   "name": "Yozishni davom ettirish",
+   "short_name": "Yozish",
+   "url": "./#write",
+   "icons": [
+    {
+     "src": "icon-192.png",
+     "sizes": "192x192",
+     "type": "image/png",
+     "purpose": "any"
+    }
+   ]
+  },
+  {
+   "name": "Muqova",
+   "short_name": "Muqova",
+   "url": "./#cover",
+   "icons": [
+    {
+     "src": "icon-192.png",
+     "sizes": "192x192",
+     "type": "image/png",
+     "purpose": "any"
+    }
+   ]
+  },
+  {
+   "name": "G‘oyalar daftari",
+   "short_name": "Daftar",
+   "url": "./#notes",
+   "icons": [
+    {
+     "src": "icon-192.png",
+     "sizes": "192x192",
+     "type": "image/png",
+     "purpose": "any"
+    }
+   ]
+  }
+ ],
+ "screenshots": [
+  {
+   "src": "shot-1.png",
+   "sizes": "720x1440",
+   "type": "image/png",
+   "form_factor": "narrow",
+   "label": "Bosh sahifa"
+  },
+  {
+   "src": "shot-2.png",
+   "sizes": "720x1440",
+   "type": "image/png",
+   "form_factor": "narrow",
+   "label": "Kitob yozish"
+  },
+  {
+   "src": "shot-3.png",
+   "sizes": "720x1440",
+   "type": "image/png",
+   "form_factor": "narrow",
+   "label": "Muqova yaratish"
+  }
+ ]
+}

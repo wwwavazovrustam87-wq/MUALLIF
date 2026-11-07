@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="uz"><head><meta charset="utf-8"><title>Muallif</title><link rel="manifest" href="manifest.json"><meta name="theme-color" content="#b4562b"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png">
+<html lang="uz"><head><meta charset="utf-8"><title>Muallif: kitob yozish makoni</title><link rel="manifest" href="manifest.json"><meta name="theme-color" content="#b4562b"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png"><meta name="description" content="O‘zbek tilida kitob yozing, muqova yarating va EPUB yoki PDF qilib yuklab oling."><meta property="og:type" content="website"><meta property="og:locale" content="uz_UZ"><meta property="og:site_name" content="Muallif"><meta property="og:title" content="Muallif: kitob yozish makoni"><meta property="og:description" content="Yozing, muqova yarating, EPUB va PDF oling. Kitoblaringiz bulutda xavfsiz."><meta property="og:url" content="https://wwwavazovrustam87-wq.github.io/MUALLIF/"><meta property="og:image" content="https://wwwavazovrustam87-wq.github.io/MUALLIF/og.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Muallif">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <style>
 :root{--bg:#faf6ef;--card:#fff;--tx:#2b2118;--mut:#8a7b6b;--ac:#b4562b;--ln:#e8dfd1;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -222,6 +222,7 @@ function cl(){$("sheet").classList.remove("show")}
 $("sheet").onclick=e=>{if(e.target.id=="sheet"){cl();if(S.tab=="write")render()}};
 if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().then(p=>{S.pst=p;if(S.tab=="me")render()}).catch(()=>{});
 applyTh();
+{const hm=location.hash.slice(1);if(["write","cover","notes","books","me"].includes(hm)){S.tab=hm;history.replaceState(null,"",location.pathname)}}
 rec().then(()=>{if(AU)setTimeout(pull,400)});
 document.addEventListener("visibilitychange",()=>{if(!AU)return;if(document.hidden){if(ch()!==S.lh)push(true)}else pull()});
 addEventListener("pagehide",()=>{keep();save()});document.addEventListener("visibilitychange",()=>{keep();save()});
