@@ -62,14 +62,16 @@ textarea#ta{font-size:18px;line-height:1.85;padding:18px;border-radius:18px;min-
 @keyframes sl{from{transform:translateY(100%)}}
 #toast{box-shadow:0 6px 18px #0004}
 ::selection{background:color-mix(in srgb,var(--ac) 30%,transparent)}
-#cs{margin-left:auto;font:12px system-ui,sans-serif;color:var(--mut)}header::after{content:none}
+#cs{margin-left:auto;font:12px system-ui,sans-serif;color:var(--mut)}header::after{content:none}.syms{display:flex;gap:6px;flex-wrap:wrap;position:sticky;top:0;z-index:5;background:var(--bg);padding:6px 0}.sym{flex:1 0 auto;min-width:34px;padding:7px 4px;font-size:17px;border-radius:12px}
+.cvr{width:200px;margin:12px auto;line-height:0;border-radius:4px 10px 10px 4px;overflow:hidden;box-shadow:0 12px 26px #00000040}.cvr svg{width:100%;height:auto;display:block}.mini .cvr{width:74px;margin:0;flex:0 0 74px;box-shadow:2px 3px 8px #0003}
+.tps{display:flex;gap:10px;overflow-x:auto;padding:6px 2px 10px}.tp{flex:0 0 78px;text-align:center;line-height:1.2}.tp svg{width:78px;height:auto;display:block;border-radius:3px;border:2px solid transparent}.tp.on svg{border-color:var(--ac)}.tp small{font-size:11px}
 </style></head><body>
 <header>✒️ Muallif<span id="cs"></span></header>
 <main id="m"></main>
 <nav id="nav"></nav>
 <div id="sheet"><div id="sb"></div></div><div id="toast"></div>
 <script>
-const GR=[["#b4562b","#6e2a12"],["#2f6f6a","#123a37"],["#4b3f8f","#1f1a48"],["#2b2b2b","#000"],["#a8325e","#4a0f27"]];
+const GR=[["#b4562b","#6e2a12"],["#2f6f6a","#123a37"],["#4b3f8f","#1f1a48"],["#2b2b2b","#000"],["#a8325e","#4a0f27"],["#b8902a","#5e470d"],["#2f7a4a","#0e3b22"],["#2d4f98","#0f2250"]];
 const FONTS=["Georgia,serif","system-ui,sans-serif","'Courier New',monospace"];
 let S={tab:"books",bi:0,ci:0,cp:0,sy:0,notes:[],paid:false,goal:500,books:[{title:"Mening birinchi kitobim",author:"Muallif",g:0,f:0,ch:[{t:"1-bob",x:""}]}]};
 try{const r=localStorage.getItem("muallif");if(r)S=Object.assign(S,JSON.parse(r))}catch(e){}
@@ -80,7 +82,6 @@ if(!S.books[S.bi])S.bi=0;const B=()=>S.books[S.bi];
 const words=t=>(t.trim().match(/\S+/g)||[]).length;
 const total=b=>b.ch.reduce((a,c)=>a+words(c.x),0);
 function toast(t){const e=$("toast");e.textContent=t;e.style.display="block";setTimeout(()=>e.style.display="none",2600)}
-function cov(b,cls=""){const g=GR[b.g];return `<div class="cover ${cls}" style="background:${b.img?`linear-gradient(#0004,#0008),url(${b.img}) center/cover`:`linear-gradient(160deg,${g[0]},${g[1]})`};font-family:${FONTS[b.f]}"><h3>${esc(b.title)||"Sarlavha"}</h3><p>${esc(b.author)||"Muallif"}</p></div>`}
 function go(t){keep();S.tab=t;save();render()}
 function render(){stopVoice();
  const T=[["books","📚","Kitoblar"],["write","✍️","Yozish"],["notes","💡","Daftar"],["cover","🎨","Muqova"],["me","👤","Profil"]];
@@ -93,15 +94,15 @@ function render(){stopVoice();
  if(S.tab=="write"){
   const b=B();if(!b.ch[S.ci])S.ci=0;b.lc=S.ci;const c=b.ch[S.ci],w=total(b),p=Math.min(100,today()/S.goal*100);
   m.innerHTML=`<div class="row"><select onchange="S.ci=+this.value;S.cp=0;S.sy=0;save();render()">${b.ch.map((x,i)=>`<option value="${i}" ${i==S.ci?"selected":""}>${esc(x.t)}</option>`).join("")}</select><button class="btn o" style="flex:0 0 auto" onclick="addCh()">+ Bob</button><button class="btn o" style="flex:0 0 auto" onclick="chs()">☰</button></div>
-  <input value="${esc(c.t)}" oninput="B().ch[S.ci].t=this.value;save()" placeholder="Bob nomi">
-  <textarea id="ta" onblur="keep();save()" onscroll="S.sy=this.scrollTop" placeholder="Hikoyangizni shu yerda yozing…" oninput="B().ch[S.ci].x=this.value;S.cp=this.selectionStart;S.sy=this.scrollTop;save();stat()">${esc(c.x)}</textarea>
+  <input value="${esc(c.t)}" oninput="ap(this);B().ch[S.ci].t=this.value;save()" placeholder="Bob nomi">
+  <div class="syms">${symList().map(k=>`<button class="btn o sym" onpointerdown="event.preventDefault()" onclick="insK('${k=="↵"?"\\n":k}')">${k}</button>`).join("")}</div><textarea id="ta" onblur="keep();save()" onscroll="S.sy=this.scrollTop" placeholder="Hikoyangizni shu yerda yozing…" oninput="ap(this);B().ch[S.ci].x=this.value;S.cp=this.selectionStart;S.sy=this.scrollTop;save();stat()">${esc(c.x)}</textarea>
   <div class="bar"><i id="pb" style="width:${p}%"></i></div><small id="st"></small><div class="row" style="margin-top:10px"><button class="btn" id="mic" onclick="voice()">🎤 Gapirib yozish</button><select style="flex:0 0 40%" onchange="S.vl=this.value;save()">${[["uz-UZ","O‘zbekcha"],["ru-RU","Русский"],["en-US","English"],["tr-TR","Türkçe"]].map(l=>`<option value="${l[0]}" ${(S.vl||"uz-UZ")==l[0]?"selected":""}>${l[1]}</option>`).join("")}</select></div><small>Buyruqlar: «nuqta», «vergul», «yangi qator», «abzats»</small>
-  <div class="row" style="margin-top:10px"><button class="btn o" onclick="tr()">Lotin ⇄ Кирилл</button><button class="btn" onclick="exp()">Yuklab olish</button></div>`;stat();restore();
+  <div class="row" style="margin-top:10px;flex-wrap:wrap"><button class="btn o" onclick="tr()">Yozuv ⇄</button><button class="btn o" onclick="spell()">🔍 Imlo</button><button class="btn" onclick="exp()">Yuklab olish</button></div>`;stat();restore();
  }
  if(S.tab=="cover"){
   const b=B();
-  m.innerHTML=`<h2>Muqova</h2>${cov(b)}<input value="${esc(b.title)}" oninput="B().title=this.value;save();pv()" placeholder="Kitob nomi"><input value="${esc(b.author)}" oninput="B().author=this.value;save();pv()" placeholder="Muallif">
-  <input type="file" id="fi" accept="image/*" hidden onchange="pic(this)">${b.img?`<button class="btn o" style="width:100%;margin:6px 0" onclick="rmi()">Rasmni olib tashlash</button>`:""}<small>Rang</small><div class="sw">${GR.map((g,i)=>`<span class="${b.g==i?"on":""}" style="background:${g[0]}" onclick="B().g=${i};save();render()"></span>`).join("")}</div>
+  m.innerHTML=`<h2>Muqova</h2>${cov(b)}<input value="${esc(b.title)}" oninput="ap(this);B().title=this.value;save();pv()" placeholder="Kitob nomi"><input value="${esc(b.author)}" oninput="ap(this);B().author=this.value;save();pv()" placeholder="Muallif">
+  <small>Shablon</small><div class="tps">${TPN.map((n,i)=>`<div class="tp ${(b.tp||0)==i?"on":""}" onclick="B().tp=${i};save();render()">${coverSVG({...b,tp:i})}<small>${n}</small></div>`).join("")}</div><input type="file" id="fi" accept="image/*" hidden onchange="pic(this)">${b.img?`<button class="btn o" style="width:100%;margin:6px 0" onclick="rmi()">Rasmni olib tashlash</button>`:""}<small>Rang</small><div class="sw">${GR.map((g,i)=>`<span class="${b.g==i?"on":""}" style="background:${g[0]}" onclick="B().g=${i};save();render()"></span>`).join("")}</div>
   <small>Shrift</small><select onchange="B().f=+this.value;save();render()">${["Klassik","Zamonaviy","Mashinka"].map((n,i)=>`<option value="${i}" ${b.f==i?"selected":""}>${n}</option>`).join("")}</select>
   <button class="btn o" style="width:100%;margin-top:8px" onclick="$('fi').click()">📷 O'z rasmimni yuklash</button><div class="card" style="margin-top:14px"><b>Kitob haqida</b><select onchange="B().genre=this.value;save()">${GN.map(g=>`<option ${b.genre==g?"selected":""}>${g}</option>`).join("")}</select><textarea style="min-height:110px" placeholder="Annotatsiya: kitob nima haqida?" oninput="B().about=this.value;save()">${esc(b.about||"")}</textarea></div>`;
  }
@@ -109,17 +110,16 @@ function render(){stopVoice();
   m.innerHTML=`<h2>Profil</h2>${cloudCard()}<div class="card"><b>Muallif</b><br><small>${S.paid?"Premium · cheksiz kitoblar":"Bepul reja · 1 ta kitob"}</small>
   ${S.paid?"":`<button class="btn" style="width:100%;margin-top:10px" onclick="pay()">Premiumga o'tish</button>`}</div>
   <div class="card"><b>Kunlik maqsad</b><input type="number" value="${S.goal}" oninput="S.goal=+this.value||1;save()"><small>so'z</small></div>
-  <div class="card"><b>Rang mavzusi</b> <small>${S.th==null?"Avto":TH[S.th].n}</small><div class="sw" style="margin-top:8px"><span class="${S.th==null?"on":""}" style="background:linear-gradient(135deg,#faf6ef 50%,#1b1612 50%)" onclick="setTh(null)"></span>${TH.map((t,i)=>`<span class="${S.th===i?"on":""}" style="background:${t.ac}" onclick="setTh(${i})"></span>`).join("")}</div></div><div class="card"><b>Zaxira nusxa</b><br><small>${S.pst?"Xotira himoyalangan ✓":"Xotira himoyasiz, zaxira oling"}${S.lb?" · oxirgi zaxira: "+S.lb:""}</small><div class="row" style="margin-top:8px"><button class="btn" onclick="bak()">Faylga saqlash</button><button class="btn o" onclick="$('rf').click()">Tiklash</button></div><input type="file" id="rf" accept=".json,application/json" hidden onchange="rst(this)"></div><div class="card"><b>Kitoblar:</b> ${S.books.length} · <b>So'zlar:</b> ${S.books.reduce((a,b)=>a+total(b),0)}</div>
+  <div class="card"><b>Yozuv shakli</b> <small>(ovozli yozish va tugmalar uchun)</small><select onchange="S.sc=this.value;save();render()">${[["old","Eski lotin (o‘ g‘ sh ch)"],["new","Yangi lotin (ö ğ ş ç)"],["cyr","Кирилл"]].map(a=>`<option value="${a[0]}" ${(S.sc||"old")==a[0]?"selected":""}>${a[1]}</option>`).join("")}</select></div><div class="card"><b>Rang mavzusi</b> <small>${S.th==null?"Avto":TH[S.th].n}</small><div class="sw" style="margin-top:8px"><span class="${S.th==null?"on":""}" style="background:linear-gradient(135deg,#faf6ef 50%,#1b1612 50%)" onclick="setTh(null)"></span>${TH.map((t,i)=>`<span class="${S.th===i?"on":""}" style="background:${t.ac}" onclick="setTh(${i})"></span>`).join("")}</div></div><div class="card"><b>Zaxira nusxa</b><br><small>${S.pst?"Xotira himoyalangan ✓":"Xotira himoyasiz, zaxira oling"}${S.lb?" · oxirgi zaxira: "+S.lb:""}</small><div class="row" style="margin-top:8px"><button class="btn" onclick="bak()">Faylga saqlash</button><button class="btn o" onclick="$('rf').click()">Tiklash</button></div><input type="file" id="rf" accept=".json,application/json" hidden onchange="rst(this)"></div><div class="card"><b>Kitoblar:</b> ${S.books.length} · <b>So'zlar:</b> ${S.books.reduce((a,b)=>a+total(b),0)}</div>
   <button class="btn o" style="width:100%" onclick="delAcc()">Akkauntni o'chirish</button>`;
  }
 }
 const K=["G’oya","Qahramon","Qoralama"];
 const LC=[["o'","ў"],["g'","ғ"],["sh","ш"],["ch","ч"],["yo","ё"],["yu","ю"],["ya","я"],["ye","е"],["ts","ц"]];
-const LM={};"aа bб dд eе fф gг hҳ iи jж kк lл mм nн oо pп qқ rр sс tт uу vв xх yй zз".split(" ").forEach(p=>LM[p[0]]=p[1]);
-const CM={"а":"a","б":"b","в":"v","г":"g","д":"d","е":"e","ё":"yo","ж":"j","з":"z","и":"i","й":"y","к":"k","л":"l","м":"m","н":"n","о":"o","п":"p","р":"r","с":"s","т":"t","у":"u","ф":"f","х":"x","ц":"ts","ч":"ch","ш":"sh","щ":"shch","ъ":"'","ы":"i","ь":"","э":"e","ю":"yu","я":"ya","ў":"o'","қ":"q","ғ":"g'","ҳ":"h"};
-function l2c(t){t=t.replace(/[ʻʼ‘’`´]/g,"'");let o="",i=0;while(i<t.length){let m=0;for(const [a,b] of LC){const s=t.substr(i,a.length);if(s.toLowerCase()==a){o+=s[0]!=s[0].toLowerCase()?b.toUpperCase():b;i+=a.length;m=1;break}}if(m)continue;const ch=t[i],l=ch.toLowerCase();let r=LM[l];if(r){if(l=="e"&&!/[a-zA-Z']/.test(t[i-1]||" "))r="э";o+=ch!=l?r.toUpperCase():r}else o+=ch;i++}return o}
+const LM={};"aа bб dд eе fф gг hҳ iи jж kк lл mм nн oо pп qқ rр sс tт uу vв xх yй zз".split(" ").forEach(p=>LM[p[0]]=p[1]);Object.assign(LM,{"ö":"ў","ğ":"ғ","ş":"ш","ç":"ч"});
+const CM={"а":"a","б":"b","в":"v","г":"g","д":"d","е":"e","ё":"yo","ж":"j","з":"z","и":"i","й":"y","к":"k","л":"l","м":"m","н":"n","о":"o","п":"p","р":"r","с":"s","т":"t","у":"u","ф":"f","х":"x","ц":"ts","ч":"ch","ш":"sh","щ":"shch","ъ":"’","ы":"i","ь":"","э":"e","ю":"yu","я":"ya","ў":"o‘","қ":"q","ғ":"g‘","ҳ":"h"};
+function l2c(t){t=t.replace(/[ʻʼ‘’`´]/g,"'");let o="",i=0;while(i<t.length){let m=0;for(const [a,b] of LC){const s=t.substr(i,a.length);if(s.toLowerCase()==a){o+=s[0]!=s[0].toLowerCase()?b.toUpperCase():b;i+=a.length;m=1;break}}if(m)continue;const ch=t[i],l=ch.toLowerCase();let r=LM[l];if(r){if(l=="e"&&!/[a-zA-Z']/.test(t[i-1]||" "))r="э";o+=ch!=l?r.toUpperCase():r}else o+=(ch=="'"?"ъ":ch);i++}return o}
 function c2l(t){return t.replace(/[\s\S]/g,ch=>{const l=ch.toLowerCase(),r=CM[l];if(r===undefined)return ch;if(!r)return "";return ch!=l?r[0].toUpperCase()+r.slice(1):r})}
-function tr(){const c=B().ch[S.ci],cy=/[а-яёўқғҳ]/i.test(c.x+c.t);c.x=cy?c2l(c.x):l2c(c.x);c.t=cy?c2l(c.t):l2c(c.t);S.cp=0;save();render();toast(cy?"Lotinga o‘tkazildi":"Kirillga o‘tkazildi")}
 function keep(){const a=$("ta");if(a){S.cp=a.selectionStart;S.sy=a.scrollTop}}
 function restore(){const a=$("ta");if(a){a.scrollTop=S.sy||0;if(S.cp>0&&S.cp<=a.value.length){a.focus({preventScroll:true});a.setSelectionRange(S.cp,S.cp);a.scrollTop=S.sy||0}}}
 function resume(){const b=B(),c=b.ch[S.ci];if(!c||!total(b))return "";return `<div class="card" style="border-color:var(--ac)"><small>Oxirgi joyingiz</small><br><b>${esc(b.title)}</b> · ${esc(c.t)}<button class="btn" style="width:100%;margin-top:8px" onclick="go('write')">Shu joydan davom etish →</button></div>`}
@@ -141,13 +141,10 @@ const g=[];a32(g,0x02014b50);a16(g,20);a16(g,20);a16(g,0x0800);a16(g,0);a16(g,0)
 let cs=0;D.forEach(x=>cs+=x.length);const e=[];a32(e,0x06054b50);a16(e,0);a16(e,0);a16(e,fs.length);a16(e,fs.length);a32(e,cs);a32(e,off);a16(e,0);
 return new Blob([...P,...D,new Uint8Array(e)],{type:"application/epub+zip"})}
 function wrap(x,t,w){const o=[];let l="";for(const s of t.split(" ")){const n=l?l+" "+s:s;if(x.measureText(n).width>w&&l){o.push(l);l=s}else l=n}o.push(l);return o}
-function cvImg(b){return new Promise(res=>{const c=document.createElement("canvas");c.width=600;c.height=900;const x=c.getContext("2d"),g=GR[b.g],gr=x.createLinearGradient(0,0,600,900);gr.addColorStop(0,g[0]);gr.addColorStop(1,g[1]);x.fillStyle=gr;x.fillRect(0,0,600,900);
-const fin=()=>{x.fillStyle="#fff";x.textAlign="center";x.font="bold 56px "+FONTS[b.f];wrap(x,b.title||"Kitob",500).forEach((l,i)=>x.fillText(l,300,260+i*70));x.font="32px "+FONTS[b.f];x.fillText(b.author||"",300,820);c.toBlob(bl=>bl.arrayBuffer().then(a=>res(new Uint8Array(a))),"image/jpeg",.88)};
-if(b.img){const im=new Image();im.onload=()=>{const k=Math.max(600/im.width,900/im.height);x.drawImage(im,(600-im.width*k)/2,(900-im.height*k)/2,im.width*k,im.height*k);x.fillStyle="#0007";x.fillRect(0,0,600,900);fin()};im.src=b.img}else fin()})}
 const pars=t=>t.split(/\n+/).filter(p=>p.trim()).map(p=>"<p>"+esc(p)+"</p>").join("");
 const slug=b=>(b.title||"kitob").replace(/[^\p{L}\p{N}]+/gu,"-").replace(/^-|-$/g,"")||"kitob";
 function saveBlob(bl,n){const a=document.createElement("a");a.href=URL.createObjectURL(bl);a.download=n;document.body.appendChild(a);a.click();a.remove()}
-async function mkEpub(){const b=B(),E=new TextEncoder(),X=s=>E.encode(s),ti=esc(b.title||"Kitob"),au=esc(b.author||"Muallif"),H='<?xml version="1.0" encoding="utf-8"?>';
+async function mkEpub(){const b=exB(),E=new TextEncoder(),X=s=>E.encode(s),ti=esc(b.title||"Kitob"),au=esc(b.author||"Muallif"),H='<?xml version="1.0" encoding="utf-8"?>';
 const chs=b.ch.map((c,i)=>({f:"c"+(i+1)+".xhtml",id:"c"+(i+1),t:c.t||("Bob "+(i+1)),x:c.x}));
 const xh=(t,h)=>H+'<!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" lang="uz"><head><meta charset="utf-8"/><title>'+t+'</title><link rel="stylesheet" href="s.css"/></head><body>'+h+'</body></html>';
 const cover=await cvImg(b);
@@ -161,11 +158,10 @@ const F=[{n:"mimetype",d:X("application/epub+zip")},
 chs.forEach(c=>F.push({n:"OEBPS/"+c.f,d:X(xh(esc(c.t),'<h1>'+esc(c.t)+'</h1>'+pars(c.x)))}));
 return zip(F)}
 async function dlEpub(){cl();if(!total(B())){toast("Avval biror narsa yozing");return}toast("EPUB tayyorlanmoqda…");try{saveBlob(await mkEpub(),slug(B())+".epub");toast("EPUB yuklandi ✓")}catch(e){toast("Xato: EPUB tayyor bo‘lmadi")}}
-function dlPdf(){cl();const b=B(),g=GR[b.g];if(!total(b)){toast("Avval biror narsa yozing");return}
+function dlPdf(){cl();const b=exB(),g=GR[b.g];if(!total(b)){toast("Avval biror narsa yozing");return}
 const bg=b.img?"linear-gradient(#0006,#0009),url("+b.img+") center/cover":"linear-gradient(160deg,"+g[0]+","+g[1]+")";
-const h='<html><head><meta charset="utf-8"><title>'+esc(b.title)+'</title><style>@page{size:A5;margin:16mm}body{font:12pt/1.6 '+FONTS[b.f]+';margin:0}.cv{height:185mm;display:flex;flex-direction:column;justify-content:space-between;align-items:center;text-align:center;color:#fff;padding:30mm 8mm;box-sizing:border-box;background:'+bg+';-webkit-print-color-adjust:exact;print-color-adjust:exact}.cv h1{font-size:30pt;margin:0}h2{text-align:center;page-break-before:always}p{text-indent:1.2em;margin:0 0 .4em;text-align:justify}</style></head><body><div class="cv"><span></span><h1>'+esc(b.title)+'</h1><div>'+esc(b.author)+'</div></div>'+b.ch.map(c=>'<h2>'+esc(c.t)+'</h2>'+pars(c.x)).join("")+'</body></html>';
+const h='<html><head><meta charset="utf-8"><title>'+esc(b.title)+'</title><style>@page{size:A5;margin:16mm}body{font:12pt/1.6 '+FONTS[b.f]+';margin:0}.cv{height:185mm;display:flex;flex-direction:column;justify-content:space-between;align-items:center;text-align:center;color:#fff;padding:30mm 8mm;box-sizing:border-box;background:'+bg+';-webkit-print-color-adjust:exact;print-color-adjust:exact}.cvp{height:178mm}.cvp svg{width:100%;height:auto}h2{text-align:center;page-break-before:always}p{text-indent:1.2em;margin:0 0 .4em;text-align:justify}</style></head><body><div class="cvp">'+coverSVG(b)+'</div>'+b.ch.map(c=>'<h2>'+esc(c.t)+'</h2>'+pars(c.x)).join("")+'</body></html>';
 const f=document.createElement("iframe");f.style.cssText="position:fixed;width:0;height:0;border:0";f.onload=()=>{setTimeout(()=>{f.contentWindow.focus();f.contentWindow.print()},400);setTimeout(()=>f.remove(),120000)};f.srcdoc=h;document.body.appendChild(f);toast("Chop etish oynasida «PDF sifatida saqlash» ni tanlang")}
-function exp(){$("sb").innerHTML='<h2>Kitobni yuklab olish</h2><p class="m">Muqova, boblar va muallif nomi bilan tayyorlanadi.</p><div class="row"><button class="btn" onclick="dlEpub()">EPUB</button><button class="btn o" onclick="dlPdf()">PDF</button></div><p class="m">PDF uchun chop etish oynasi ochiladi: «PDF sifatida saqlash» ni tanlang.</p>';$("sheet").classList.add("show")}
 const SB="https://xmecxpwmjwqhevdhtljs.supabase.co",KEY="sb_publishable_dQ4W4TACEFWWylse-arAog_CKqtJgPu";
 let AU=null,cs="",pt=null,busy=false;
 try{AU=JSON.parse(localStorage.getItem("muallif_auth")||"null")}catch(e){}
@@ -218,7 +214,7 @@ let VR=null,VA=false,VB="",VF="",VAf="",VT=null;
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 function vfix(t){return t.replace(/\b(yangi qator|yangi satr)\b/gi,"\n").replace(/\babzats\b/gi,"\n\n").replace(/\bso['‘’ʻ]roq belgisi\b/gi,"?").replace(/\bundov belgisi\b/gi,"!").replace(/\bnuqta\b/gi,".").replace(/\bvergul\b/gi,",").replace(/[ \t]+([.,!?])/g,"$1").replace(/ *\n */g,"\n")}
 function vcap(b,t){if(!t)return t;if(!b.trim()||/[.!?]\s*$/.test(b)||/\n\s*$/.test(b))t=t.charAt(0).toUpperCase()+t.slice(1);return t.replace(/([.!?]\s+|\n\s*)(\p{L})/gu,(m,a,c)=>a+c.toUpperCase())}
-function vshow(im){const ta=$("ta");if(!ta)return;let ins=vcap(VB,vfix((VF+" "+im).trim()));const sp=VB&&!/\s$/.test(VB)&&ins&&!/^[.,!?\n]/.test(ins)?" ":"";const t=VB+sp+ins;ta.value=t+VAf;try{ta.setSelectionRange(t.length,t.length)}catch(e){}ta.scrollTop=ta.scrollHeight}
+function vshow(im){const ta=$("ta");if(!ta)return;let ins=vcap(VB,cvs(fixAp(vfix((VF+" "+im).trim()))));const sp=VB&&!/\s$/.test(VB)&&ins&&!/^[.,!?\n]/.test(ins)?" ":"";const t=VB+sp+ins;ta.value=t+VAf;try{ta.setSelectionRange(t.length,t.length)}catch(e){}ta.scrollTop=ta.scrollHeight}
 function vsave(){const ta=$("ta");if(ta){B().ch[S.ci].x=ta.value;S.cp=ta.selectionStart;save();stat()}}
 function vui(){const b=$("mic");if(b){b.textContent=VA?"⏹ To‘xtatish":"🎤 Gapirib yozish";b.style.background=VA?"linear-gradient(135deg,#d33,#a00)":""}}
 function voice(){if(VA){stopVoice();return}if(!SR){toast("Bu brauzerda ovozli yozish yo‘q. Chrome yoki Samsung brauzerini sinang, yoki klaviaturadagi 🎤 ni bosing");return}const ta=$("ta");if(!ta)return;const p=ta.selectionStart==null?ta.value.length:ta.selectionStart;VB=ta.value.slice(0,p);VAf=ta.value.slice(p);VF="";VA=true;vui();vstart()}
@@ -228,8 +224,50 @@ r.onerror=e=>{const c=e.error;if(c=="not-allowed"||c=="service-not-allowed"){toa
 r.onend=()=>{if(VA){clearTimeout(VT);VT=setTimeout(vstart,250)}else vui()};
 try{r.start()}catch(e){VT=setTimeout(vstart,400)}}
 function stopVoice(){if(!VA&&!VR)return;VA=false;clearTimeout(VT);try{VR&&VR.stop()}catch(e){}VR=null;vsave();vui()}
+const fixAp=t=>t.replace(/([oOgG])['`´ʻʼ]/g,"$1‘").replace(/(\p{L})['`´ʼ]/gu,"$1’");
+function ap(t){const v=t.value,n=fixAp(v);if(n!==v){const p=t.selectionStart;t.value=n;try{t.setSelectionRange(p,p)}catch(e){}}}
+function insK(k){const ta=$("ta");if(!ta)return;ta.setRangeText(k,ta.selectionStart,ta.selectionEnd,"end");ta.dispatchEvent(new Event("input"))}
+function spChk(x){let y=x;const c=(re,f)=>{let n=0;y=y.replace(re,(...a)=>{n++;return f(...a)});return n};
+const z=fixAp(y);let a1=0;for(let i=0;i<y.length;i++)if(y[i]!==z[i])a1++;y=z;
+const a2=c(/(\S)[ \t]{2,}(?=\S)/g,(m,p)=>p+" "),a3=c(/[ \t]+([.,!?;:])/g,(m,p)=>p),a4=c(/([.,!?;:])(?=\p{L})/gu,(m,p)=>p+" "),a5=c(/([.!?]\s+)(\p{Ll})/gu,(m,p,q)=>p+q.toUpperCase());
+const dup=[...x.matchAll(/(?<![\p{L}’‘])(\p{L}[\p{L}’‘]*)\s+\1(?![\p{L}’‘])/giu)].map(m=>m[1]);
+return{y,dup,n:[["Apostrof (o‘ g‘ ’)",a1],["Ortiqcha bo‘sh joy",a2],["Belgidan oldin bo‘sh joy",a3],["Belgidan keyin bo‘sh joy yo‘q",a4],["Gap boshi kichik harf",a5]]}}
+function spell(){const c=B().ch[S.ci],r=spChk(c.x),tot=r.n.reduce((a,b)=>a+b[1],0);window._sp=r.y;
+$("sb").innerHTML='<h2>Imlo tekshiruvi</h2>'+((tot||r.dup.length)?r.n.filter(z=>z[1]).map(z=>'<div class="row" style="margin:4px 0"><span style="text-align:left">'+z[0]+'</span><b style="flex:0 0 auto">'+z[1]+'</b></div>').join("")+(r.dup.length?'<p class="m">Takroriy so‘zlar: '+r.dup.slice(0,8).map(esc).join(", ")+' (o‘zingiz tekshiring)</p>':"")+(tot?'<button class="btn" style="width:100%;margin-top:8px" onclick="spFix()">Avtomatik tuzatish</button>':""):'<p class="m">Xato topilmadi ✓</p>')+'<button class="btn o" style="width:100%;margin-top:8px" onclick="cl()">Yopish</button>';$("sheet").classList.add("show")}
+function spFix(){const c=B().ch[S.ci];window._un={b:S.bi,c:S.ci,x:c.x};c.x=window._sp;save();$("sb").innerHTML='<h2>Tuzatildi ✓</h2><div class="row"><button class="btn o" onclick="spUn()">↩ Qaytarish</button><button class="btn" onclick="cl();render()">Yopish</button></div>'}
+function spUn(){const u=window._un;if(u&&S.books[u.b]&&S.books[u.b].ch[u.c]){S.books[u.b].ch[u.c].x=u.x;save()}cl();render();toast("Qaytarildi")}
+const SN={old:"Eski lotin",new:"Yangi lotin",cyr:"Кирилл"};
+function o2n(t){return t.replace(/([oOgG])['‘ʻ`´]/g,(m,a)=>({o:"ö",O:"Ö",g:"ğ",G:"Ğ"}[a])).replace(/sh/gi,m=>m[0]=="S"?"Ş":"ş").replace(/ch/gi,m=>m[0]=="C"?"Ç":"ç")}
+function n2o(t){return t.replace(/[öÖğĞşŞçÇ]/g,(m,i,s)=>{const up=/\p{Lu}/u.test(s[i+1]||"")||/\p{Lu}/u.test(s[i-1]||"");return{"ö":"o‘","Ö":"O‘","ğ":"g‘","Ğ":"G‘","ş":"sh","Ş":up?"SH":"Sh","ç":"ch","Ç":up?"CH":"Ch"}[m]})}
+function det(t){if(/[а-яёўқғҳ]/i.test(t))return"cyr";const n=(t.match(/[öğşçÖĞŞÇ]/g)||[]).length,o=(t.match(/[oOgG]['‘ʻ`´]|sh|ch/gi)||[]).length;return n>o?"new":"old"}
+function conv(t,f,to){if(!t||f==to)return t;if(to=="cyr")return l2c(t);if(f=="cyr"){t=c2l(t);return to=="new"?o2n(t):t}return to=="new"?o2n(t):n2o(t)}
+const cvs=t=>(S.sc&&S.sc!="old")?conv(t,"old",S.sc):t;
+function symList(){const k=S.sc||"old",c=["‘","’"],r=[",",".","?","!","—","«","»","↵"];return(k=="new"?["ö","ğ","ş","ç","’"]:k=="cyr"?["ў","ғ","қ","ҳ","ъ"]:c).concat(r)}
+function tr(){$("sb").innerHTML='<h2>Yozuvni o‘tkazish</h2><p class="m">Joriy bob:</p>'+sbtn("ch")+'<p class="m">Butun kitob:</p>'+sbtn("bk")+'<p class="m">O‘tkazgandan keyin ba’zi so‘zlarni (tutuq belgisi, «sh» va «ch» yonma-yon kelgan joylar) tekshiring.</p>';$("sheet").classList.add("show")}
+function sbtn(w){return '<div class="row" style="margin:4px 0">'+["old","new","cyr"].map(t=>'<button class="btn o" style="padding:10px 4px" onclick="doTr(\''+w+'\',\''+t+'\')">'+SN[t]+'</button>').join("")+'</div>'}
+function doTr(w,t){cl();const b=B(),arr=w=="bk"?b.ch:[b.ch[S.ci]],k=x=>x?conv(x,det(x),t):x;arr.forEach(c=>{c.x=k(c.x);c.t=k(c.t)});if(w=="bk"){b.title=k(b.title);b.about=k(b.about)}S.sc=t;S.cp=0;save();render();toast(SN[t]+"ga o‘tkazildi")}
+function exB(){const b=B(),x=S.xs;if(!x)return b;const k=t=>t?conv(t,det(t),x):t;return Object.assign({},b,{title:k(b.title),author:k(b.author),about:k(b.about),ch:b.ch.map(c=>({t:k(c.t),x:k(c.x)}))})}
+function exp(){$("sb").innerHTML=`<h2>Kitobni yuklab olish</h2><p class="m">Muqova, boblar va muallif nomi bilan tayyorlanadi.</p><p class="m">Yozuv shakli:</p><select onchange="S.xs=this.value">${[["","O‘zgarishsiz"],["old","Eski lotin"],["new","Yangi lotin"],["cyr","Кирилл"]].map(a=>`<option value="${a[0]}" ${(S.xs||"")==a[0]?"selected":""}>${a[1]}</option>`).join("")}</select><div class="row" style="margin-top:10px"><button class="btn" onclick="dlEpub()">EPUB</button><button class="btn o" onclick="dlPdf()">PDF</button></div><p class="m">PDF uchun chop etish oynasi ochiladi: «PDF sifatida saqlash» ni tanlang.</p>`;$("sheet").classList.add("show")}
+const TPN=["Klassik","Minimal","Zamonaviy","Ramka","Tungi","Geometrik"];
+let _u=0;const _cx=document.createElement("canvas").getContext("2d");
+function coverSVG(b){const g=GR[b.g]||GR[0],f=FONTS[b.f]||FONTS[0],t=b.tp||0,id="cg"+(++_u),im=!!b.img,au=b.author||"";
+const T=(x,y,l,sz,fill,wt,anc,ex)=>'<text x="'+x+'" y="'+y+'" font-size="'+sz+'" fill="'+fill+'" font-weight="'+(wt||"normal")+'" text-anchor="'+(anc||"middle")+'" font-family="'+f+'" '+(ex||"")+'>'+esc(l)+'</text>';
+const ttl=(w,s)=>{const tx=b.title||"Kitob nomi";_cx.font="bold "+s+"px "+f;let L=wrap(_cx,tx,w);while(L.length>4&&s>34){s-=4;_cx.font="bold "+s+"px "+f;L=wrap(_cx,tx,w)}return{L,s}};
+const lines=(L,x,cy,lh,s,fill,anc,ex)=>L.map((l,i)=>T(x,cy-(L.length-1)*lh/2+i*lh,l,s,fill,"bold",anc,ex)).join("");
+const IM='<image href="'+(b.img||"")+'" width="600" height="900" preserveAspectRatio="xMidYMid slice"/><rect width="600" height="900" fill="#000" opacity=".45"/>';
+const GRD=a=>'<defs><linearGradient id="'+id+'" '+(a||'x1="0" y1="0" x2="1" y2="1"')+'><stop offset="0" stop-color="'+g[0]+'"/><stop offset="1" stop-color="'+g[1]+'"/></linearGradient></defs>';
+let o="";
+if(t==0){const{L,s}=ttl(470,60);o=GRD()+(im?IM:'<rect width="600" height="900" fill="url(#'+id+')"/>')+'<rect width="26" height="900" fill="#000" opacity=".22"/>'+lines(L,312,350,s*1.2,s,"#fff")+'<rect x="250" y="690" width="100" height="4" fill="#fff" opacity=".7"/>'+T(312,790,au,32,"#fff","normal","middle",'letter-spacing="2"')}
+else if(t==1){const{L,s}=ttl(440,56),dk=im?"#fff":g[1],ac=im?"#fff":g[0];o=(im?IM:'<rect width="600" height="900" fill="#faf6ef"/>')+'<rect x="34" y="34" width="532" height="832" fill="none" stroke="'+ac+'" stroke-width="3"/><rect x="48" y="48" width="504" height="804" fill="none" stroke="'+ac+'" stroke-width="1"/>'+lines(L,300,380,s*1.2,s,dk)+'<rect x="190" y="619" width="80" height="3" fill="'+ac+'"/><circle cx="300" cy="620" r="7" fill="'+ac+'"/><rect x="330" y="619" width="80" height="3" fill="'+ac+'"/>'+T(300,780,au,30,ac,"normal","middle",'letter-spacing="2"')}
+else if(t==2){const{L,s}=ttl(480,56);o=(im?IM:'<rect width="600" height="900" fill="'+g[1]+'"/>')+'<circle cx="470" cy="210" r="250" fill="'+g[0]+'" opacity=".92"/><circle cx="470" cy="210" r="150" fill="#fff" opacity=".14"/><rect x="50" y="545" width="80" height="6" fill="#f2c14e"/>'+lines(L,50,690,s*1.2,s,"#fff","start")+T(50,830,au,28,"#ffffffcc","normal","start",'letter-spacing="1"')}
+else if(t==3){const{L,s}=ttl(420,54),D=(x,y)=>'<polygon points="'+x+','+(y-16)+' '+(x+16)+','+y+' '+x+','+(y+16)+' '+(x-16)+','+y+'" fill="#f2c14e"/>';o=(im?IM:'<rect width="600" height="900" fill="'+g[0]+'"/>')+'<rect x="30" y="30" width="540" height="840" fill="none" stroke="#f2c14e" stroke-width="5"/><rect x="50" y="50" width="500" height="800" fill="none" stroke="#f2c14e" stroke-width="1.5"/>'+D(50,50)+D(550,50)+D(50,850)+D(550,850)+lines(L,300,380,s*1.2,s,"#fff6e4")+'<rect x="250" y="585" width="100" height="3" fill="#f2c14e"/>'+T(300,760,au,30,"#f2c14e","normal","middle",'letter-spacing="2"')}
+else if(t==4){const{L,s}=ttl(460,54),st=[[80,90],[160,300],[520,120],[470,330],[110,420],[540,480],[60,640],[300,70]].map(a=>'<circle cx="'+a[0]+'" cy="'+a[1]+'" r="3" fill="#fff6e4" opacity=".8"/>').join("");o='<defs><linearGradient id="'+id+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+g[1]+'"/><stop offset="1" stop-color="#0b0b14"/></linearGradient><mask id="m'+id+'"><rect width="600" height="900" fill="#fff"/><circle cx="332" cy="212" r="78" fill="#000"/></mask></defs>'+(im?IM:'<rect width="600" height="900" fill="url(#'+id+')"/>')+st+'<circle cx="300" cy="230" r="86" fill="#fff6e4" mask="url(#m'+id+')"/>'+lines(L,300,560,s*1.2,s,"#fff6e4","middle",'font-style="italic"')+T(300,830,au,30,"#fff6e4cc","normal","middle",'letter-spacing="2"')}
+else{const{L,s}=ttl(440,54),lh=s*1.2,bh=L.length*lh+60;o=(im?IM:'<rect width="600" height="900" fill="#fff6e4"/>')+'<polygon points="0,0 600,0 0,520" fill="'+g[0]+'" opacity=".92"/><polygon points="600,900 600,380 80,900" fill="'+g[1]+'" opacity=".92"/><rect x="50" y="300" width="500" height="'+bh+'" fill="#fff" opacity=".94"/>'+lines(L,300,300+bh/2-4,lh,s,g[1])+T(550,850,au,30,"#fff","normal","end",'letter-spacing="2"')}
+return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 900">'+o+'</svg>'}
+function cov(b,cls=""){return '<div class="cvr '+cls+'">'+coverSVG(b)+'</div>'}
+function pv(){const w=document.querySelector(".cvr");if(w)w.innerHTML=coverSVG(B())}
+function cvImg(b){return new Promise((res,rej)=>{const im=new Image();im.onload=()=>{const c=document.createElement("canvas");c.width=600;c.height=900;c.getContext("2d").drawImage(im,0,0,600,900);c.toBlob(bl=>bl.arrayBuffer().then(a=>res(new Uint8Array(a))),"image/jpeg",.9)};im.onerror=rej;im.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(coverSVG(b))})}
 function stat(){const b=B(),w=total(b),e=$("st");if(e){e.textContent=`${words(b.ch[S.ci].x)} so'z (bob) · bugun ${today()}/${S.goal} · saqlandi ✓`;$("pb").style.width=Math.min(100,today()/S.goal*100)+"%"}}
-function pv(){const c=document.querySelector(".cover");if(c){c.querySelector("h3").textContent=B().title||"Sarlavha";c.querySelector("p").textContent=B().author||"Muallif"}}
 function addCh(){const b=B();b.ch.push({t:(b.ch.length+1)+"-bob",x:""});S.ci=b.ch.length-1;save();render()}
 function pay(){$("sb").innerHTML=`<h2>Premium</h2><p class="m">Cheksiz kitoblar, EPUB/PDF, muqova shablonlari. Karta orqali to'lov.</p><input placeholder="Karta raqami 8600 •••• •••• ••••" inputmode="numeric" maxlength="19"><div class="row"><input placeholder="MM/YY"><button class="btn" onclick="S.paid=true;save();cl();toast('To\\'lov muvaffaqiyatli (namuna)');render()">To'lash</button></div><p class="m">Bu namuna: haqiqiy to'lov keyin ulanadi.</p><button class="btn o" style="width:100%" onclick="cl()">Yopish</button>`;$("sheet").classList.add("show")}
 function cl(){$("sheet").classList.remove("show")}
